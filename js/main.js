@@ -2,8 +2,13 @@
 numberOfImages = 4;
 
 // adjustable variables
-const minTime = 500;
+// const minTime = 500;
+const minTime = 100;
 const targetPointMargin = 5;
+// const expansion = 1.001;
+// const maskExpansion = 1.002;
+const expansion = 1.01;
+const maskExpansion = 1.02;
 
 // get window width
 const windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -64,43 +69,23 @@ loader.onComplete.add(() => {
   elapsed = [];
 
   for (var i = 0; i < numberOfImages; i++) {
-    // define the image that will be masked
-    masked[i] = new PIXI.Sprite();
-    masked[i].time = minTime + minTime * Math.random();
-    masked[i].alpha = 0;
-    addRandomImage(masked[i], sprites);
-    placeImage(masked[i]);
-
-    // create mask for this image
-    mask[i] = new PIXI.Sprite();
-    mask[i].texture = masked[i].texture;
-    placeImage(mask[i]);
-    // define the mask image as the mask for the top image
-    masked[i].mask = mask[i];
-
-    // create alpha for this image
-    alpha[i] = new PIXI.Sprite();
-    alpha[i].texture = masked[i].texture;
-    alpha[i].alpha = 0;
-    placeImage(alpha[i]);
-
-    // create targetpoints for this image
-    targetPoints[i] = new PIXI.Point();
-
-    // create new counter
-    elapsed[i] = 0.0;
+    setTimeout(function () {
+      addImageToScene();
+    }, i * minTime);
   }
 
-  // create a point where the mask image will move towards
-  resetTargetPoints();
 
-  // reset basically moves this point randomly, and the mask will then start moving there
-  function resetTargetPoints() {
-    for (var i = 0; i < targetPoints.length; i++) {
-      targetPoints[i].x  = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
-      targetPoints[i].y  = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
-    }
-  }
+
+  // // create a point where the mask image will move towards
+  // resetTargetPoints();
+  //
+  // // reset basically moves this point randomly, and the mask will then start moving there
+  // function resetTargetPoints() {
+  //   for (var i = 0; i < targetPoints.length; i++) {
+  //     targetPoints[i].x  = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
+  //     targetPoints[i].y  = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
+  //   }
+  // }
 
 
 
@@ -108,7 +93,7 @@ loader.onComplete.add(() => {
   // in the amount of time that has passed since the last tick
   app.ticker.add((delta) => {
     // for each image instance do a thing
-    for (var i = 0; i < numberOfImages; i++) {
+    for (var i = 0; i < masked.length; i++) {
       const maxTime = masked[i].time;
       // count time
       elapsed[i] += delta;
@@ -119,9 +104,9 @@ loader.onComplete.add(() => {
       // mask[i].x += (targetPoints[i].x - mask[i].x) * 1 / masked[i].time;
       // mask[i].y += (targetPoints[i].y - mask[i].y) * 1 / masked[i].time;
       // scale image
-      masked[i].scale.set( masked[i].scale._x * 1.001 );
-      mask[i].scale.set( mask[i].scale._x * 1.002 );
-      alpha[i].scale.set( alpha[i].scale._x * 1.001 );
+      masked[i].scale.set( masked[i].scale._x * expansion );
+      mask[i].scale.set( mask[i].scale._x * maskExpansion );
+      alpha[i].scale.set( alpha[i].scale._x * expansion );
       // if time is up, reset everything
       if (elapsed[i] > maxTime) {
         // make a new base image
@@ -138,7 +123,7 @@ loader.onComplete.add(() => {
         // reset timer
         elapsed[i] = 0;
         // reset the point that the mask moves towards
-        resetTargetPoints();
+        // resetTargetPoints();
       }
     }
   });
@@ -148,6 +133,34 @@ loader.onComplete.add(() => {
 
 
 // putting the fun back into functions
+// add an image to the scene
+function addImageToScene(){
+  // define the image that will be masked
+  masked.push(new PIXI.Sprite());
+  masked[masked.length - 1].time = minTime + minTime * Math.random();
+  masked[masked.length - 1].alpha = 0;
+  addRandomImage(masked[masked.length - 1], sprites);
+  placeImage(masked[masked.length - 1]);
+
+  // create mask for this image
+  mask.push(new PIXI.Sprite());
+  mask[mask.length - 1].texture = masked[mask.length - 1].texture;
+  placeImage(mask[mask.length - 1]);
+  // define the mask image as the mask for the top image
+  masked[mask.length - 1].mask = mask[mask.length - 1];
+
+  // create alpha for this image
+  alpha.push(new PIXI.Sprite());
+  alpha[alpha.length - 1].texture = masked[alpha.length - 1].texture;
+  alpha[alpha.length - 1].alpha = 0;
+  placeImage(alpha[alpha.length - 1]);
+
+  // create targetpoints for this image
+  targetPoints.push(new PIXI.Point());
+
+  // create new counter
+  elapsed.push(0.0);
+}
 // add a random image
 function addRandomImage(target, src){
   target.texture = getRandomProp(src).texture;
