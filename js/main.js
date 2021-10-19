@@ -1,22 +1,5 @@
-// // create the canvas
-// document.body.appendChild(app.view);
-//
-// // Magically load the PNG asynchronously
-// let sprite = PIXI.Sprite.from('img/2004273_PS5.jpg');
-// // add to stage
-// app.stage.addChild(sprite);
-//
-// // Add a variable to count up the seconds our demo has been running
-// let elapsed = 0.0;
-// // Tell our application's ticker to run a new callback every frame, passing
-// // in the amount of time that has passed since the last tick
-// app.ticker.add((delta) => {
-//   // Add the time to our total elapsed time
-//   elapsed += delta;
-//   // Update the sprite's X position based on the cosine of our elapsed time.  We divide
-//   // by 50 to slow the animation down a bit...
-//   sprite.x = 100.0 + Math.cos(elapsed/50.0) * 100.0;
-// });
+// adjustable variables
+minTime = 200;
 
 // get window width
 const windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -40,7 +23,7 @@ loader.add('img1', 'img/IMG_2110.JPG')
       .add('img9', 'img/IMG_4854.JPG')
       .add('img10', 'img/IMG_4860.JPG')
       .add('img11', 'img/IMG_4680.JPG')
-      .add('img12', 'img/arseniy-chebynkin-sermetch.jpg');
+      .add('img12', 'img/IMG_8928.JPG');
 
 // The `load` method loads the queue of resources, and calls the passed in callback called once all
 // resources have loaded.
@@ -69,19 +52,26 @@ loader.load((loader, resources) => {
 loader.onComplete.add(() => {
   // console.log("loaded");
 
-  // define background image
-  const bg = sprites.img1;
-  // place random image
-  addRandomImage(bg, sprites);
-  placeImage(bg);
+  // // define background image
+  // const bg = sprites.img1;
+  // // place random image
+  // addRandomImage(bg, sprites);
+  // placeImage(bg);
 
   // define the image that will be masked
   const top = sprites.img2;
+  top.time = minTime + minTime * Math.random();
   addRandomImage(top, sprites);
   placeImage(top);
 
   // define the image that masks the top image
   const mask = sprites.img3;
+  const maskfilter = new PIXI.filters.AdjustmentFilter({
+    gamma: 0,
+    contrast: 5,
+    brightness: 0
+  });
+  mask.filters = [maskfilter];
   addRandomImage(mask, sprites);
   placeImage(mask);
 
@@ -108,29 +98,26 @@ loader.onComplete.add(() => {
     // Add the time to our total elapsed time
     elapsed += delta;
 
-    // // move the mask towards the targetpoint
-    // mask.x += (targetPoint.x - mask.x) * 0.1;
-    // mask.y += (targetPoint.y - mask.y) * 0.1;
-    //
-    // // if the mask has reached it's target, move the target
-    // if (Math.abs(mask.x - targetPoint.x) < 1) {
-    //     reset();
-    // }
+    // move the mask towards the targetpoint
+    mask.x += (targetPoint.x - mask.x) * 0.03;
+    mask.y += (targetPoint.y - mask.y) * 0.03;
 
     // scale mask, bg, top img
-    bg.scale.set( bg.scale._x * 1.001 );
-    mask.scale.set( mask.scale._x * 1.001 );
+    // bg.scale.set( bg.scale._x * 1.001 );
+    mask.scale.set( mask.scale._x * 1.0011 );
     top.scale.set( top.scale._x * 1.001 );
 
     // every couple frames, reset everything
-    if (elapsed > 100) {
-      addRandomImage(bg, sprites);
-      placeImage(bg);
+    if (elapsed > top.time) {
+      // addRandomImage(bg, sprites);
+      // placeImage(bg);
       addRandomImage(mask, sprites);
       placeImage(mask);
       addRandomImage(top, sprites);
       placeImage(top);
       elapsed = 0;
+      // reset the point that the mask moves towards
+      reset();
     }
   });
 
@@ -154,6 +141,8 @@ function getRandomProp(obj){
 
 // place an image and center it
 function placeImage(target){
+  // reset scale otherwise it fucks up
+  target.scale.set(1);
   // size the image so that it covers the canvas
   target.scale.set(getScaleFactor(target.width, target.height));
   // center image
