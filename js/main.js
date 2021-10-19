@@ -58,41 +58,63 @@ loader.onComplete.add(() => {
   placeImage(bg);
 
   // define the image that will be masked
-  const cells = sprites.two;
-  placeImage(cells);
+  const top = sprites.two;
+  addRandomImage(top, sprites);
+  placeImage(top);
 
-  // cells.scale.set(1.5);
-
+  // define the image that masks the top image
   const mask = sprites.three;
+  addRandomImage(mask, sprites);
   placeImage(mask);
 
-  cells.mask = mask;
+  // define the mask image as the mask for the top image
+  top.mask = mask;
 
-  app.stage.addChild(mask, cells);
-
-  const target = new PIXI.Point();
-
+  // create a point where the mask image will move towards
+  const targetPoint = new PIXI.Point();
+  const targetPointMargin = 20;
   reset();
 
+  // reset basically moves this point randomly, and the mask will then start moving there
   function reset() {
-      target.x = Math.floor(Math.random() * 550);
-      target.y = Math.floor(Math.random() * 300);
+      targetPoint.x = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
+      targetPoint.y = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowHeight / 2 );
   }
 
-  app.ticker.add(() => {
-      mask.x += (target.x - mask.x) * 0.1;
-      mask.y += (target.y - mask.y) * 0.1;
 
-      bg.scale.set( bg.scale._x * 1.001 );
 
-      if (Math.abs(mask.x - target.x) < 1) {
-          reset();
-      }
 
-      // if (bg.scale._x > 1) {
-      //   addRandomImage(bg, sprites);
-      //   placeImage(bg);
-      // }
+
+
+
+
+
+  // Add a variable to count up the seconds our demo has been running
+  let elapsed = 0.0;
+  // Tell our application's ticker to run a new callback every frame, passing
+  // in the amount of time that has passed since the last tick
+  app.ticker.add((delta) => {
+    // Add the time to our total elapsed time
+    elapsed += delta;
+
+    // move the mask towards the targetpoint
+    mask.x += (targetPoint.x - mask.x) * 0.1;
+    mask.y += (targetPoint.y - mask.y) * 0.1;
+
+    // if the mask has reached it's target, move the target
+    if (Math.abs(mask.x - targetPoint.x) < 1) {
+        reset();
+    }
+
+    // scale mask, bg, top img
+    bg.scale.set( bg.scale._x * 1.001 );
+    mask.scale.set( mask.scale._x * 1.001 );
+    top.scale.set( top.scale._x * 1.001 );
+
+    // if (bg.scale._x > 1) {
+    //   addRandomImage(bg, sprites);
+    //   placeImage(bg);
+    // }
   });
 
 }); // called once when the queued resources all load.
