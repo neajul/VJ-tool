@@ -1,5 +1,6 @@
 // adjustable variables
-minTime = 200;
+const minTime = 500;
+const targetPointMargin = 20;
 
 // get window width
 const windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -52,41 +53,35 @@ loader.load((loader, resources) => {
 loader.onComplete.add(() => {
   // console.log("loaded");
 
-  // // define background image
-  // const bg = sprites.img1;
-  // // place random image
-  // addRandomImage(bg, sprites);
-  // placeImage(bg);
 
   // define the image that will be masked
-  const top = sprites.img2;
-  top.time = minTime + minTime * Math.random();
-  addRandomImage(top, sprites);
-  placeImage(top);
+  const masked1 = new PIXI.Sprite();
+  masked1.time = minTime + minTime * Math.random();
+  masked1.alpha = 0;
+  addRandomImage(masked1, sprites);
+  placeImage(masked1);
 
-  // define the image that masks the top image
-  const mask = sprites.img3;
-  const maskfilter = new PIXI.filters.AdjustmentFilter({
-    gamma: 0,
-    contrast: 5,
-    brightness: 0
-  });
-  mask.filters = [maskfilter];
-  addRandomImage(mask, sprites);
-  placeImage(mask);
-
+  // create mask for this image
+  const mask1 = new PIXI.Sprite();
+  mask1.texture = masked1.texture;
+  placeImage(mask1);
   // define the mask image as the mask for the top image
-  top.mask = mask;
+  masked1.mask = mask1;
+
+  // create alpha for this image
+  const alpha1 = new PIXI.Sprite();
+  alpha1.texture = masked1.texture;
+  alpha1.alpha = 0;
+  placeImage(alpha1);
 
   // create a point where the mask image will move towards
-  const targetPoint = new PIXI.Point();
-  const targetPointMargin = 20;
-  reset();
+  const targetPoint1 = new PIXI.Point();
+  resetTargetPoints();
 
   // reset basically moves this point randomly, and the mask will then start moving there
-  function reset() {
-      targetPoint.x = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
-      targetPoint.y = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowHeight / 2 );
+  function resetTargetPoints() {
+      targetPoint1.x = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
+      targetPoint1.y = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowHeight / 2 );
   }
 
   // Add a variable to count up the seconds our demo has been running
@@ -99,26 +94,26 @@ loader.onComplete.add(() => {
     elapsed += delta;
 
     // move the mask towards the targetpoint
-    mask.x += (targetPoint.x - mask.x) * 0.03;
-    mask.y += (targetPoint.y - mask.y) * 0.03;
+    mask1.x += (targetPoint1.x - mask1.x) * 0.03;
+    mask1.y += (targetPoint1.y - mask1.y) * 0.03;
 
-    // scale mask, bg, top img
-    // bg.scale.set( bg.scale._x * 1.001 );
-    mask.scale.set( mask.scale._x * 1.0011 );
-    top.scale.set( top.scale._x * 1.001 );
+    // scale images universally
+    masked1.scale.set( masked1.scale._x * 1.001 );
+    mask1.scale.set( mask1.scale._x * 1.0011 );
+    alpha1.scale.set( alpha1.scale._x * 1.001 );
+    masked1.alpha = masked1.alpha + 0.001;
+    alpha1.alpha = alpha1.alpha + 0.0005;
 
     // every couple frames, reset everything
-    if (elapsed > top.time) {
-      // addRandomImage(bg, sprites);
-      // placeImage(bg);
-      addRandomImage(mask, sprites);
-      placeImage(mask);
-      addRandomImage(top, sprites);
-      placeImage(top);
-      elapsed = 0;
-      // reset the point that the mask moves towards
-      reset();
-    }
+    // if (elapsed > masked1.time) {
+    //   addRandomImage(masked1, sprites);
+    //   placeImage(masked1);
+    //   addRandomImage(mask1, sprites);
+    //   placeImage(mask1);
+    //   elapsed = 0;
+    //   // reset the point that the mask moves towards
+    //   resetTargetPoints();
+    // }
   });
 
 }); // called once when the queued resources all load.
