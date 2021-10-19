@@ -1,3 +1,17 @@
+// TO DO
+// add attributes array
+  // give elements their own speed
+  // add other transforms, for example for the mask
+// make alpha array the main array and the mask one follows
+// FIX THE loading error (small stopping frame, maybe firefox?)
+  // it goes away after running through a few times, also the images are huge, so can probably fix it by resizing images
+// more images layered (now it's only two i think)
+// implement video?
+// filters
+// should the images jump?
+
+
+
 // hard vars
 numberOfImages = 4;
 
@@ -6,9 +20,9 @@ numberOfImages = 4;
 const minTime = 100;
 const targetPointMargin = 5;
 // const expansion = 1.001;
-// const maskExpansion = 1.002;
+// const maskExpansion = 1.0013;
 const expansion = 1.01;
-const maskExpansion = 1.02;
+const maskExpansion = 1.011;
 
 // get window width
 const windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
@@ -68,11 +82,7 @@ loader.onComplete.add(() => {
   targetPoints = [];
   elapsed = [];
 
-  for (var i = 0; i < numberOfImages; i++) {
-    setTimeout(function () {
-      addImageToScene();
-    }, i * minTime);
-  }
+  addImageToScene();
 
 
 
@@ -94,12 +104,16 @@ loader.onComplete.add(() => {
   app.ticker.add((delta) => {
     // for each image instance do a thing
     for (var i = 0; i < masked.length; i++) {
+      // movement etc
       const maxTime = masked[i].time;
       // count time
       elapsed[i] += delta;
-      // turn up alpha
-      masked[i].alpha = masked[i].alpha + 1 / masked[i].time / 2;
-      alpha[i].alpha = alpha[i].alpha + 1 / masked[i].time;
+      // turn up alpha of mask
+      masked[i].alpha = masked[i].alpha + 1 / (masked[i].time / 2);
+      // only start with main alpha a bit later
+      if (elapsed[i] > masked[i].time / 2) {
+        alpha[i].alpha = alpha[i].alpha + 1 / ( masked[i].time - masked[i].time / 2 );
+      }
       // move mask towards target point
       // mask[i].x += (targetPoints[i].x - mask[i].x) * 1 / masked[i].time;
       // mask[i].y += (targetPoints[i].y - mask[i].y) * 1 / masked[i].time;
@@ -107,23 +121,16 @@ loader.onComplete.add(() => {
       masked[i].scale.set( masked[i].scale._x * expansion );
       mask[i].scale.set( mask[i].scale._x * maskExpansion );
       alpha[i].scale.set( alpha[i].scale._x * expansion );
-      // if time is up, reset everything
-      if (elapsed[i] > maxTime) {
-        // make a new base image
-        masked[i].alpha = 0;
-        addRandomImage(masked[i], sprites);
-        placeImage(masked[i]);
-        // new mask
-        mask[i].texture = masked[0].texture;
-        placeImage(mask[i]);
-        // new alpha
-        alpha[i].texture = masked[i].texture;
-        placeImage(alpha[i]);
-        alpha[i].alpha = 0;
-        // reset timer
-        elapsed[i] = 0;
-        // reset the point that the mask moves towards
-        // resetTargetPoints();
+
+      // if time is up, delete previous image, add new one
+      if (elapsed[i] > maxTime / 2 && masked[i].next == true) {
+        masked[i].next = false;
+        addImageToScene();
+        if (masked[i - 2]) {
+          app.stage.removeChild(masked[i - 2]);
+          app.stage.removeChild(mask[i - 2]);
+          app.stage.removeChild(alpha[i - 2]);
+        }
       }
     }
   });
@@ -135,25 +142,29 @@ loader.onComplete.add(() => {
 // putting the fun back into functions
 // add an image to the scene
 function addImageToScene(){
+
+  // create alpha for this image
+  alpha.push(new PIXI.Sprite());
+  alpha[alpha.length - 1].alpha = 0;
+  addRandomImage(alpha[alpha.length - 1], sprites);
+  placeImage(alpha[alpha.length - 1]);
+
   // define the image that will be masked
   masked.push(new PIXI.Sprite());
+  // add random time value for this
   masked[masked.length - 1].time = minTime + minTime * Math.random();
+  // add next value
+  masked[masked.length - 1].next = true;
   masked[masked.length - 1].alpha = 0;
-  addRandomImage(masked[masked.length - 1], sprites);
+  masked[masked.length - 1].texture = alpha[masked.length - 1].texture;
   placeImage(masked[masked.length - 1]);
 
   // create mask for this image
   mask.push(new PIXI.Sprite());
-  mask[mask.length - 1].texture = masked[mask.length - 1].texture;
+  mask[mask.length - 1].texture = alpha[mask.length - 1].texture;
   placeImage(mask[mask.length - 1]);
   // define the mask image as the mask for the top image
   masked[mask.length - 1].mask = mask[mask.length - 1];
-
-  // create alpha for this image
-  alpha.push(new PIXI.Sprite());
-  alpha[alpha.length - 1].texture = masked[alpha.length - 1].texture;
-  alpha[alpha.length - 1].alpha = 0;
-  placeImage(alpha[alpha.length - 1]);
 
   // create targetpoints for this image
   targetPoints.push(new PIXI.Point());
