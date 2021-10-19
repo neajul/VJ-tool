@@ -49,31 +49,22 @@ loader.load((loader, resources) => {
 
 // when all images are loaded we can start
 loader.onComplete.add(() => {
-  console.log("loaded");
+  // console.log("loaded");
 
   // define background image
   const bg = sprites.one;
-  // size the image so that it covers the canvas
-  bg.scale.set(getScaleFactor(bg.width, bg.height));
-
-  // center image
-  bg.anchor.x = 0.5;
-  bg.anchor.y = 0.5;
-  bg.position.x = windowWidth / 2;
-  bg.position.y = windowHeight / 2;
-
-  // add background to stage
-  app.stage.addChild(bg);
+  // place random image
+  addRandomImage(bg, sprites);
+  placeImage(bg);
 
   // define the image that will be masked
   const cells = sprites.two;
+  placeImage(cells);
 
   // cells.scale.set(1.5);
 
   const mask = sprites.three;
-  mask.anchor.set(0.5);
-  mask.x = 310;
-  mask.y = 190;
+  placeImage(mask);
 
   cells.mask = mask;
 
@@ -92,20 +83,56 @@ loader.onComplete.add(() => {
       mask.x += (target.x - mask.x) * 0.1;
       mask.y += (target.y - mask.y) * 0.1;
 
+      bg.scale.set( bg.scale._x * 1.001 );
+
       if (Math.abs(mask.x - target.x) < 1) {
           reset();
       }
+
+      // if (bg.scale._x > 1) {
+      //   addRandomImage(bg, sprites);
+      //   placeImage(bg);
+      // }
   });
 
-  // find scale factor for image any image
-  function getScaleFactor(imgwidth, imgheight){
-    scalex = windowWidth / imgwidth;
-    scaley = windowHeight / imgheight;
-    if (scalex > scaley) {
-      return scalex
-    } else {
-      return scaley
-    }
-  }
-
 }); // called once when the queued resources all load.
+
+
+
+
+
+// putting the fun back into functions
+// add a random image
+function addRandomImage(target, src){
+  target.texture = getRandomProp(src).texture;
+}
+
+// get random property from object
+function getRandomProp(obj){
+  var keys = Object.keys(obj);
+  return obj[keys[ keys.length * Math.random() << 0]];
+}
+
+// place an image and center it
+function placeImage(target){
+  // size the image so that it covers the canvas
+  target.scale.set(getScaleFactor(target.width, target.height));
+  // center image
+  target.anchor.x = 0.5;
+  target.anchor.y = 0.5;
+  target.position.x = windowWidth / 2;
+  target.position.y = windowHeight / 2;
+  // add background to stage
+  app.stage.addChild(target);
+}
+
+// find scale factor for image any image
+function getScaleFactor(imgwidth, imgheight){
+  scalex = windowWidth / imgwidth;
+  scaley = windowHeight / imgheight;
+  if (scalex > scaley) {
+    return scalex
+  } else {
+    return scaley
+  }
+}
