@@ -9,11 +9,12 @@ const windowWidth = window.innerWidth || document.documentElement.clientWidth ||
 const windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
 // adjustable variables
-let minTime = 100;
+let minTime = 300;
 let targetPointMargin = 0;
 let expansion = 1;
 let maskExpansion = 1;
-let rotation = true;
+let rotation = false;
+let rotationAmount = .001;
 
 updateConsoleInterface();
 
@@ -76,13 +77,32 @@ document.onkeydown = function(e) {
     // interface
     updateConsoleInterface();
   }
-}
+  // turn on rotation
+  if (e.key == "r") {
+    rotation = !rotation;
+    // interface
+    updateConsoleInterface();
+  }
+  // more rotation
+  if (e.key == "t") {
+    rotationAmount += .001;
+    // interface
+    updateConsoleInterface();
+  }
+  // less rotation
+  if (e.key == "e") {
+    rotationAmount -= .001;
+    // interface
+    updateConsoleInterface();
+  }
+};
 
 // ###############
 // # LOAD IMAGES #
 // ###############
 
 var allImg = ["img/385DE7B7-4FCE-4FC9-8B90-F17BF0CA2604.JPG", "img/431295BE-2C56-47D0-B417-9C9EF338665A.JPG", "img/IMG_2110.JPG", "img/IMG_2115.JPG", "img/IMG_2116.JPG", "img/IMG_2121.JPG", "img/IMG_2122.JPG", "img/IMG_3601.jpg", "img/IMG_4047.jpg", "img/IMG_4049.jpg", "img/IMG_4052.jpg", "img/IMG_4056.jpg", "img/IMG_4496.JPG", "img/IMG_4592.JPG", "img/IMG_4680.JPG", "img/IMG_4804.JPG", "img/IMG_4854.JPG", "img/IMG_4860.JPG", "img/IMG_4867.jpg", "img/IMG_4868.JPG", "img/IMG_4874.JPG", "img/IMG_4878.JPG", "img/IMG_4886.JPG", "img/IMG_5242.JPG", "img/IMG_5253.JPG", "img/IMG_5257.JPG", "img/IMG_5260.JPG", "img/IMG_5330.JPG", "img/IMG_5346.JPG", "img/IMG_5350.JPG", "img/IMG_5354.JPG", "img/IMG_5361.JPG", "img/IMG_5363.JPG", "img/IMG_5367.jpg", "img/IMG_5372.JPG", "img/IMG_5469.JPG", "img/IMG_5477.jpg", "img/IMG_5543.jpg", "img/IMG_5544 2.JPG", "img/IMG_5643.JPG", "img/IMG_5646.jpg", "img/IMG_5647.JPG", "img/IMG_5657.JPG", "img/IMG_5661.PNG", "img/IMG_5673.jpg", "img/IMG_5836 2.JPG", "img/IMG_5837.JPG", "img/IMG_5948.jpg", "img/IMG_5949.jpg", "img/IMG_5995.JPG", "img/IMG_6020.jpg", "img/IMG_6022.JPG", "img/IMG_6023.JPG", "img/IMG_6193.JPG", "img/IMG_6194.JPG", "img/IMG_6308.JPG", "img/IMG_6485.JPG", "img/IMG_6555.JPG", "img/IMG_6564.JPG", "img/IMG_6567.JPG", "img/IMG_6646 2.JPG", "img/IMG_6647.JPG", "img/IMG_6900.JPG", "img/IMG_7754 2.JPG", "img/IMG_7763.JPG", "img/IMG_8813.JPG", "img/IMG_8900.jpg", "img/IMG_8914.JPG", "img/IMG_8921.JPG", "img/IMG_8928.JPG", "img/IMG_8933.JPG", "img/IMG_8935.jpg", "img/IMG_8989.jpg"]
+
 var allImgNames = [];
 // make array of names
 for (var i = 0; i < allImg.length; i++) {
@@ -156,9 +176,9 @@ loader.onComplete.add(() => {
 
       // rotation
       if (rotation == true) {
-        masked[i].rotation += .01;
-        mask[i].rotation += .01;
-        alpha[i].rotation += .01;
+        masked[i].rotation += masked[i].rotationAmount;
+        mask[i].rotation += masked[i].rotationAmount;
+        alpha[i].rotation += masked[i].rotationAmount;
       }
 
       // if time is up, delete previous image, add new one
@@ -183,12 +203,17 @@ loader.onComplete.add(() => {
 function updateConsoleInterface(){
   console.clear();
   // explain controls
-  console.log("+++Controls+++\n"
-            + "\n"
-            + "Image expansion combined: ↑ / ↓ \n"
-            + "Mask expansion alone:     < / > \n"
-            + "Image transition time:    ← / → \n"
-            + "mask movement amount:     [ / ] \n"
+  console.log("╔ Controls ═════════════════════════╗\n"
+            + "║                                   ║\n"
+            + "║ Image expansion combined — ↑ or ↓ ║\n"
+            + "║ Mask expansion alone ————— < or > ║\n"
+            + "║ Image transition time ———— ← or → ║\n"
+            + "║ mask movement amount ————— [ or ] ║\n"
+            + "║ rotation on/off —————————— R      ║\n"
+            + "║ increase rotation ———————— T      ║\n"
+            + "║ decrease rotation ———————— E      ║\n"
+            + "║                                   ║\n"
+            + "╚═══════════════════════════════════╝"
           );
   // make array of value objects, round to certin number of digits after 0
   var values = [
@@ -204,6 +229,12 @@ function updateConsoleInterface(){
     },{
       key: "target",
       value: Math.round(targetPointMargin * 10000) / 10000,
+    },{
+      key: "rotation",
+      value: rotation,
+    },{
+      key: "rot. amnt.",
+      value: Math.round(rotationAmount * 10000) / 10000,
     }
   ];
   // define output object
@@ -256,7 +287,10 @@ function addImageToScene(){
   masked[masked.length - 1].time = minTime + minTime * Math.random();
   // add next value
   masked[masked.length - 1].next = true;
+  // alpha value
   masked[masked.length - 1].alpha = 0;
+  // roation
+  masked[masked.length - 1].rotationAmount = (Math.random() - .5) * rotationAmount;
   masked[masked.length - 1].texture = alpha[masked.length - 1].texture;
   placeImage(masked[masked.length - 1]);
 
