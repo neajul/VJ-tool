@@ -11,8 +11,9 @@ const windowHeight = window.innerHeight || document.documentElement.clientHeight
 // adjustable variables
 let minTime = 100;
 let targetPointMargin = 0;
-let expansion = 1.001;
-let maskExpansion = 1.0013;
+let expansion = 1;
+let maskExpansion = 1;
+let rotation = true;
 
 updateConsoleInterface();
 
@@ -123,10 +124,6 @@ loader.onComplete.add(() => {
 
   addImageToScene();
 
-  // create a point where the mask image will move towards
-  // add targetpoint for each sprite
-  // resetTargetPoints(id);
-
   // reset basically moves this point randomly, and the mask will then start moving there
   function resetTargetPoints(id) {
     targetPoints[id].x  = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
@@ -149,14 +146,20 @@ loader.onComplete.add(() => {
         alpha[i].alpha = alpha[i].alpha + 1 / ( masked[i].time - masked[i].time / 2 );
       }
       // move mask towards target point
-      // mask[i].x += (targetPoints[i].x - mask[i].x) * .001;
-      // console.log( targetPoints[i].x);
-      mask[i].y += (targetPoints[i].y - mask[i].y) * .001;
+      mask[i].x += (targetPoints[i].x - mask[i].x) * 1 / masked[i].time;
+      mask[i].y += (targetPoints[i].y - mask[i].y) * 1 / masked[i].time;
 
       // scale image
       masked[i].scale.set( masked[i].scale._x * expansion );
       mask[i].scale.set( mask[i].scale._x * maskExpansion );
       alpha[i].scale.set( alpha[i].scale._x * expansion );
+
+      // rotation
+      if (rotation == true) {
+        masked[i].rotation += .01;
+        mask[i].rotation += .01;
+        alpha[i].rotation += .01;
+      }
 
       // if time is up, delete previous image, add new one
       if (elapsed[i] > maxTime / 2 && masked[i].next == true) {
