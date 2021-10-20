@@ -1,32 +1,46 @@
-// TO DO
-// add attributes array
-  // give elements their own speed
-  // add other transforms, for example for the mask
-// make alpha array the main array and the mask one follows
-// FIX THE loading error (small stopping frame, maybe firefox?)
-  // it goes away after running through a few times, also the images are huge, so can probably fix it by resizing images
-// more images layered (now it's only two i think)
-// implement video?
-// filters
-// should the images jump?
-
-
 
 // hard vars
-numberOfImages = 4;
-
-// adjustable variables
-// const minTime = 500;
-const minTime = 100;
-const targetPointMargin = 5;
-// const expansion = 1.001;
-// const maskExpansion = 1.0013;
-const expansion = 1.01;
-const maskExpansion = 1.011;
-
+const numberOfImages = 4;
 // get window width
 const windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
 const windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
+
+
+// adjustable variables
+// const minTime = 500;
+let minTime = 100;
+let targetPointMargin = 5;
+let expansion = 1.001;
+let maskExpansion = 1.0013;
+// const expansion = 1.01;
+// const maskExpansion = 1.011;
+
+// console interface
+document.onkeydown = function(e) {
+  console.log(e);
+  // exp. speed up
+  if (e.key == "ArrowUp") {
+    expansion *= 1 + 0.001;
+    maskExpansion *= 1 + 0.001;
+  }
+  // exp. speed down
+  if (e.key == "ArrowDown") {
+    expansion *= 1 - 0.001;
+    maskExpansion *= 1 - 0.001;
+  }
+  // transition time up
+  if (e.key == "ArrowRight") {
+    minTime *= 1 + 0.1;
+  }
+  // transition time down
+  if (e.key == "ArrowLeft") {
+    minTime *= 1 - 0.1;
+  }
+  // interface
+  updateConsoleInterface();
+}
+
+
 
 // make new pixi app
 const app = new PIXI.Application({ width: windowWidth, height: windowHeight });
@@ -140,6 +154,56 @@ loader.onComplete.add(() => {
 
 
 // putting the fun back into functions
+function updateConsoleInterface(){
+  console.clear();
+  // make array of value objects, round to certin number of digits after 0
+  var values = [
+    {
+      key: "time",
+      value: Math.round(minTime * 10000) / 10000,
+    },{
+      key: "exp.",
+      value: Math.round(expansion * 10000) / 10000,
+    },{
+      key: "maks",
+      value: Math.round(maskExpansion * 10000) / 10000,
+    }
+  ];
+  // define output object
+  var output = {
+    bordertop:    "╔",
+    keyline:      "║ ",
+    bordermiddle: "╟",
+    valueline:    "║ ",
+    borderbottom: "╚",
+  };
+  // find the longest statement for each object, add to total length, add to output object
+  for (var i = 0; i < values.length; i++) {
+    // find longest entry
+    values[i].length = findLongestString([values[i].key, String(values[i].value)]);
+    // add to output array
+    output.bordertop    += new Array(values[i].length.length + 3).join( "═" ) + "╤";
+    output.keyline      += values[i].key + new Array(values[i].length.length - values[i].key.length + 1).join( " " ) + " │ ";
+    output.bordermiddle += new Array(values[i].length.length + 3).join( "─" ) + "┼";
+    output.valueline    += values[i].value + new Array(values[i].length.length - String(values[i].value).length + 1).join( " " ) + " │ ";
+    output.borderbottom += new Array(values[i].length.length + 3).join( "═" ) + "╧";
+    // fix the ends of each line
+    if (i == values.length - 1) {
+      output.bordertop    = output.bordertop.substr(0, output.bordertop.length - 2) + "═╗\n";
+      output.keyline      = output.keyline.substr(0, output.keyline.length - 3) + " ║\n";
+      output.bordermiddle = output.bordermiddle.substr(0, output.bordermiddle.length - 2) + "─╢\n";
+      output.valueline    = output.valueline.substr(0, output.valueline.length - 3) + " ║\n";
+      output.borderbottom = output.borderbottom.substr(0, output.borderbottom.length - 2) + "═╝\n";
+    }
+  }
+  console.warn(output.bordertop + output.keyline + output.bordermiddle + output.valueline + output.borderbottom);
+}
+function findLongestString(array){
+  var longestWord = array.sort(function(a, b) {
+    return b.length - a.length;
+  });
+  return array[0];
+}
 // add an image to the scene
 function addImageToScene(){
 
