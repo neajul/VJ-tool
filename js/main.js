@@ -77,9 +77,16 @@ document.onkeydown = function(e) {
   }
 }
 
-// ##############
-// # PIXI SETUP #
-// ##############
+// ###############
+// # LOAD IMAGES #
+// ###############
+
+var allImg = ["img/385DE7B7-4FCE-4FC9-8B90-F17BF0CA2604.JPG", "img/431295BE-2C56-47D0-B417-9C9EF338665A.JPG", "img/IMG_2110.JPG", "img/IMG_2115.JPG", "img/IMG_2116.JPG", "img/IMG_2121.JPG", "img/IMG_2122.JPG", "img/IMG_3601.jpg", "img/IMG_4047.jpg", "img/IMG_4049.jpg", "img/IMG_4052.jpg", "img/IMG_4056.jpg", "img/IMG_4496.JPG", "img/IMG_4592.JPG", "img/IMG_4680.JPG", "img/IMG_4804.JPG", "img/IMG_4854.JPG", "img/IMG_4860.JPG", "img/IMG_4867.jpg", "img/IMG_4868.JPG", "img/IMG_4874.JPG", "img/IMG_4878.JPG", "img/IMG_4886.JPG", "img/IMG_5242.JPG", "img/IMG_5253.JPG", "img/IMG_5257.JPG", "img/IMG_5260.JPG", "img/IMG_5330.JPG", "img/IMG_5346.JPG", "img/IMG_5350.JPG", "img/IMG_5354.JPG", "img/IMG_5361.JPG", "img/IMG_5363.JPG", "img/IMG_5367.jpg", "img/IMG_5372.JPG", "img/IMG_5469.JPG", "img/IMG_5477.jpg", "img/IMG_5543.jpg", "img/IMG_5544 2.JPG", "img/IMG_5643.JPG", "img/IMG_5646.jpg", "img/IMG_5647.JPG", "img/IMG_5657.JPG", "img/IMG_5661.PNG", "img/IMG_5673.jpg", "img/IMG_5836 2.JPG", "img/IMG_5837.JPG", "img/IMG_5948.jpg", "img/IMG_5949.jpg", "img/IMG_5995.JPG", "img/IMG_6020.jpg", "img/IMG_6022.JPG", "img/IMG_6023.JPG", "img/IMG_6193.JPG", "img/IMG_6194.JPG", "img/IMG_6308.JPG", "img/IMG_6485.JPG", "img/IMG_6555.JPG", "img/IMG_6564.JPG", "img/IMG_6567.JPG", "img/IMG_6646 2.JPG", "img/IMG_6647.JPG", "img/IMG_6900.JPG", "img/IMG_7754 2.JPG", "img/IMG_7763.JPG", "img/IMG_8813.JPG", "img/IMG_8900.jpg", "img/IMG_8914.JPG", "img/IMG_8921.JPG", "img/IMG_8928.JPG", "img/IMG_8933.JPG", "img/IMG_8935.jpg", "img/IMG_8989.jpg"]
+var allImgNames = [];
+// make array of names
+for (var i = 0; i < allImg.length; i++) {
+  allImgNames.push("img" + i);
+}
 
 // make new pixi app
 const app = new PIXI.Application({ width: windowWidth, height: windowHeight });
@@ -88,41 +95,22 @@ document.body.appendChild(app.view);
 // load all image resources
 const loader = PIXI.Loader.shared;
 const sprites = {};
-loader.add('img1', 'img/IMG_2110.JPG')
-      .add('img2', 'img/IMG_2115.JPG')
-      .add('img3', 'img/IMG_2116.JPG')
-      .add('img4', 'img/IMG_2121.JPG')
-      .add('img5', 'img/IMG_2122.JPG')
-      .add('img6', 'img/IMG_4496.JPG')
-      .add('img7', 'img/IMG_4592.JPG')
-      .add('img8', 'img/IMG_4804.JPG')
-      .add('img9', 'img/IMG_4854.JPG')
-      .add('img10', 'img/IMG_4860.JPG')
-      .add('img11', 'img/IMG_4680.JPG')
-      .add('img12', 'img/IMG_8928.JPG');
+// load all images programmatically
+for (var i = 0; i < allImg.length; i++) {
+  loader.add('img' + i, allImg[i]);
+}
 
 // The `load` method loads the queue of resources, and calls the passed in callback called once all
 // resources have loaded.
 loader.load((loader, resources) => {
-    // resources is an object where the key is the name of the resource loaded and the value is the resource object.
-    // They have a couple default properties:
-    // - `url`: The URL that the resource was loaded from
-    // - `error`: The error that happened when trying to load (if any)
-    // - `data`: The raw data that was loaded
-    // also may contain other properties based on the middleware that runs.
-    sprites.img1 = new PIXI.Sprite(resources.img1.texture);
-    sprites.img2 = new PIXI.Sprite(resources.img2.texture);
-    sprites.img3 = new PIXI.Sprite(resources.img3.texture);
-    sprites.img4 = new PIXI.Sprite(resources.img4.texture);
-    sprites.img5 = new PIXI.Sprite(resources.img5.texture);
-    sprites.img6 = new PIXI.Sprite(resources.img6.texture);
-    sprites.img7 = new PIXI.Sprite(resources.img7.texture);
-    sprites.img8 = new PIXI.Sprite(resources.img8.texture);
-    sprites.img9 = new PIXI.Sprite(resources.img9.texture);
-    sprites.img10 = new PIXI.Sprite(resources.img10.texture);
-    sprites.img11 = new PIXI.Sprite(resources.img11.texture);
-    sprites.img12 = new PIXI.Sprite(resources.img12.texture);
+    for (var i = 0; i < allImg.length; i++) {
+      sprites["img" + i] = new PIXI.Sprite(resources["img" + i].texture);
+    }
 });
+
+// ##############
+// # PIXI SETUP #
+// ##############
 
 // when all images are loaded we can start
 loader.onComplete.add(() => {
@@ -242,7 +230,7 @@ function updateConsoleInterface(){
       output.borderbottom = output.borderbottom.substr(0, output.borderbottom.length - 2) + "═╝\n";
     }
   }
-  console.warn(output.bordertop + output.keyline + output.bordermiddle + output.valueline + output.borderbottom);
+  console.warn("\n" + output.bordertop + output.keyline + output.bordermiddle + output.valueline + output.borderbottom);
 }
 function findLongestString(array){
   var longestWord = array.sort(function(a, b) {
