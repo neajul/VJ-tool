@@ -1,3 +1,6 @@
+// ###############
+// # BASIC SETUP #
+// ###############
 
 // hard vars
 const numberOfImages = 4;
@@ -5,42 +8,78 @@ const numberOfImages = 4;
 const windowWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
 const windowHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
-
 // adjustable variables
-// const minTime = 500;
 let minTime = 100;
-let targetPointMargin = 5;
+let targetPointMargin = 0;
 let expansion = 1.001;
 let maskExpansion = 1.0013;
-// const expansion = 1.01;
-// const maskExpansion = 1.011;
+
+updateConsoleInterface();
 
 // console interface
 document.onkeydown = function(e) {
-  console.log(e);
+  // console.log(e);
   // exp. speed up
   if (e.key == "ArrowUp") {
     expansion *= 1 + 0.001;
     maskExpansion *= 1 + 0.001;
+    // interface
+    updateConsoleInterface();
   }
   // exp. speed down
   if (e.key == "ArrowDown") {
     expansion *= 1 - 0.001;
     maskExpansion *= 1 - 0.001;
+    // interface
+    updateConsoleInterface();
+  }
+  // only mask speed up
+  if (e.key == ".") {
+    maskExpansion *= 1 + 0.0001;
+    // interface
+    updateConsoleInterface();
+  }
+  // only mask speed down
+  if (e.key == ",") {
+    maskExpansion *= 1 - 0.0001;
+    // interface
+    updateConsoleInterface();
   }
   // transition time up
   if (e.key == "ArrowRight") {
     minTime *= 1 + 0.1;
+    // interface
+    updateConsoleInterface();
   }
   // transition time down
   if (e.key == "ArrowLeft") {
     minTime *= 1 - 0.1;
+    // interface
+    updateConsoleInterface();
   }
-  // interface
-  updateConsoleInterface();
+  // targetpoint margin up
+  if (e.key == "]") {
+    targetPointMargin *= 1 + .5;
+    if (targetPointMargin == 0) {
+      targetPointMargin = 1;
+    }
+    // interface
+    updateConsoleInterface();
+  }
+  // targetpoint margin down
+  if (e.key == "[") {
+    targetPointMargin *= 1 - .5;
+    if (targetPointMargin == 0) {
+      targetPointMargin = -1;
+    }
+    // interface
+    updateConsoleInterface();
+  }
 }
 
-
+// ##############
+// # PIXI SETUP #
+// ##############
 
 // make new pixi app
 const app = new PIXI.Application({ width: windowWidth, height: windowHeight });
@@ -87,8 +126,6 @@ loader.load((loader, resources) => {
 
 // when all images are loaded we can start
 loader.onComplete.add(() => {
-  // console.log("loaded");
-
   // dynamically create some images, and their counterparts
   masked = [];
   mask = [];
@@ -98,20 +135,15 @@ loader.onComplete.add(() => {
 
   addImageToScene();
 
+  // create a point where the mask image will move towards
+  // add targetpoint for each sprite
+  // resetTargetPoints(id);
 
-
-  // // create a point where the mask image will move towards
-  // resetTargetPoints();
-  //
-  // // reset basically moves this point randomly, and the mask will then start moving there
-  // function resetTargetPoints() {
-  //   for (var i = 0; i < targetPoints.length; i++) {
-  //     targetPoints[i].x  = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
-  //     targetPoints[i].y  = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
-  //   }
-  // }
-
-
+  // reset basically moves this point randomly, and the mask will then start moving there
+  function resetTargetPoints(id) {
+    targetPoints[id].x  = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
+    targetPoints[id].y  = ( ( Math.random() - .5 ) * targetPointMargin ) + ( windowWidth / 2 );
+  }
 
   // Tell our application's ticker to run a new callback every frame, passing
   // in the amount of time that has passed since the last tick
@@ -129,8 +161,10 @@ loader.onComplete.add(() => {
         alpha[i].alpha = alpha[i].alpha + 1 / ( masked[i].time - masked[i].time / 2 );
       }
       // move mask towards target point
-      // mask[i].x += (targetPoints[i].x - mask[i].x) * 1 / masked[i].time;
-      // mask[i].y += (targetPoints[i].y - mask[i].y) * 1 / masked[i].time;
+      // mask[i].x += (targetPoints[i].x - mask[i].x) * .001;
+      // console.log( targetPoints[i].x);
+      mask[i].y += (targetPoints[i].y - mask[i].y) * .001;
+
       // scale image
       masked[i].scale.set( masked[i].scale._x * expansion );
       mask[i].scale.set( mask[i].scale._x * maskExpansion );
@@ -148,14 +182,23 @@ loader.onComplete.add(() => {
       }
     }
   });
-
 }); // called once when the queued resources all load.
 
-
+// #####################
+// # GENERAL FUNCTIONS #
+// #####################
 
 // putting the fun back into functions
 function updateConsoleInterface(){
   console.clear();
+  // explain controls
+  console.log("+++Controls+++\n"
+            + "\n"
+            + "Image expansion combined: ↑ / ↓ \n"
+            + "Mask expansion alone:     < / > \n"
+            + "Image transition time:    ← / → \n"
+            + "mask movement amount:     [ / ] \n"
+          );
   // make array of value objects, round to certin number of digits after 0
   var values = [
     {
@@ -167,6 +210,9 @@ function updateConsoleInterface(){
     },{
       key: "maks",
       value: Math.round(maskExpansion * 10000) / 10000,
+    },{
+      key: "target",
+      value: Math.round(targetPointMargin * 10000) / 10000,
     }
   ];
   // define output object
@@ -230,8 +276,11 @@ function addImageToScene(){
   // define the mask image as the mask for the top image
   masked[mask.length - 1].mask = mask[mask.length - 1];
 
-  // create targetpoints for this image
-  targetPoints.push(new PIXI.Point());
+  // create targetpoints for this image (center of image)
+  // only if there are less targetPoints than images
+  if (targetPoints.length < masked.length) {
+    targetPoints.push(new PIXI.Point(windowWidth/2, windowHeight/2));
+  }
 
   // create new counter
   elapsed.push(0.0);
