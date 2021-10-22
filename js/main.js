@@ -18,7 +18,21 @@ let rotationAmount = .001;
 
 updateConsoleInterface();
 
-// console interface
+
+
+
+
+
+
+
+
+
+
+
+// ##################
+// # CONTROLS SETUP #
+// ##################
+
 document.onkeydown = function(e) {
   // console.log(e);
   // exp. speed up
@@ -77,25 +91,53 @@ document.onkeydown = function(e) {
     // interface
     updateConsoleInterface();
   }
-  // turn on rotation
-  if (e.key == "r") {
-    rotation = !rotation;
+
+
+  // filter controls
+  // alpha: more gamma
+  if (e.key == "2") {
+    alphaAdjustment.gamma += .1;
     // interface
     updateConsoleInterface();
+    console.log("gamma", alphaAdjustment.gamma);
   }
-  // more rotation
-  if (e.key == "t") {
-    rotationAmount += .001;
+  // alpha: less gamma
+  if (e.key == "1") {
+    alphaAdjustment.gamma -= .1;
     // interface
     updateConsoleInterface();
+    console.log("gamma", alphaAdjustment.gamma);
   }
-  // less rotation
-  if (e.key == "e") {
-    rotationAmount -= .001;
+
+  // alpha: more emboss
+  if (e.key == "4") {
+    alphaDisplace.strength += .1;
     // interface
     updateConsoleInterface();
+    console.log("alphaDisplace", alphaDisplace.strength);
+  }
+  // alpha: less emboss
+  if (e.key == "3") {
+    alphaDisplace.strength -= .1;
+    // interface
+    updateConsoleInterface();
+    console.log("alphaDisplace", alphaDisplace.strength);
   }
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ###############
 // # LOAD IMAGES #
@@ -129,6 +171,47 @@ loader.load((loader, resources) => {
     }
 });
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ################
+// # FILTER SETUP #
+// ################
+
+// general filter
+const alphaAdjustment = new PIXI.filters.AdjustmentFilter();
+alphaAdjustment.gamma = 0;
+alphaAdjustment.contrast = 1;
+alphaAdjustment.brightness = 1;
+
+const alphaDisplace = new PIXI.filters.EmbossFilter();
+alphaDisplace.strength = 0;
+// alphaDisplace.blendMode = 1;
+console.log(alphaDisplace);
+console.log(alphaDisplace.blendMode);
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ##############
 // # PIXI SETUP #
 // ##############
@@ -155,6 +238,7 @@ loader.onComplete.add(() => {
   app.ticker.add((delta) => {
     // for each image instance do a thing
     for (var i = 0; i < masked.length; i++) {
+
       // movement etc
       const maxTime = masked[i].time;
       // count time
@@ -185,21 +269,149 @@ loader.onComplete.add(() => {
       if (elapsed[i] > maxTime / 2 && masked[i].next == true) {
         masked[i].next = false;
         addImageToScene();
-        if (masked[i - 2]) {
-          app.stage.removeChild(masked[i - 2]);
-          app.stage.removeChild(mask[i - 2]);
-          app.stage.removeChild(alpha[i - 2]);
+        if (masked[i - 3]) {
+          app.stage.removeChild(masked[i - 3]);
+          app.stage.removeChild(mask[i - 3]);
+          app.stage.removeChild(alpha[i - 3]);
         }
       }
+
+
+      // // for testing just one image at a time!
+      // if (elapsed[i] > maxTime / 1 && masked[i].next == true) {
+      //   masked[i].next = false;
+      //   addImageToScene();
+      //   if (masked[i - 1]) {
+      //     app.stage.removeChild(masked[i - 1]);
+      //     app.stage.removeChild(mask[i - 1]);
+      //     app.stage.removeChild(alpha[i - 1]);
+      //   }
+      // }
+
+
     }
   });
 }); // called once when the queued resources all load.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // #####################
 // # GENERAL FUNCTIONS #
 // #####################
 
 // putting the fun back into functions
+function findLongestString(array){
+  var longestWord = array.sort(function(a, b) {
+    return b.length - a.length;
+  });
+  return array[0];
+}
+// add an image to the scene
+function addImageToScene(){
+
+  // create alpha for this image
+  alpha.push(new PIXI.Sprite());
+  alpha[alpha.length - 1].alpha = 0;
+  addRandomImage(alpha[alpha.length - 1], sprites);
+  placeImage(alpha[alpha.length - 1]);
+
+  // apply filter to alpha
+  alpha[alpha.length - 1].filters = [alphaDisplace];
+
+
+  // define the image that will be masked
+  masked.push(new PIXI.Sprite());
+  // add random time value for this
+  masked[masked.length - 1].time = minTime + minTime * Math.random();
+  // add next value
+  masked[masked.length - 1].next = true;
+  // alpha value
+  masked[masked.length - 1].alpha = 0;
+  // roation
+  masked[masked.length - 1].rotationAmount = (Math.random() - .5) * rotationAmount;
+  masked[masked.length - 1].texture = alpha[masked.length - 1].texture;
+  placeImage(masked[masked.length - 1]);
+
+
+  // masked[masked.length - 1].filters = [alphaDisplace];
+
+  // create mask for this image
+  mask.push(new PIXI.Sprite());
+  mask[mask.length - 1].texture = alpha[mask.length - 1].texture;
+  placeImage(mask[mask.length - 1]);
+  // define the mask image as the mask for the top image
+  masked[mask.length - 1].mask = mask[mask.length - 1];
+
+  // create targetpoints for this image (center of image)
+  // only if there are less targetPoints than images
+  if (targetPoints.length < masked.length) {
+    targetPoints.push(new PIXI.Point(windowWidth/2, windowHeight/2));
+  }
+
+  // create new counter
+  elapsed.push(0.0);
+}
+// add a random image
+function addRandomImage(target, src){
+  target.texture = getRandomProp(src).texture;
+}
+
+// get random property from object
+function getRandomProp(obj){
+  var keys = Object.keys(obj);
+  return obj[keys[ keys.length * Math.random() << 0]];
+}
+
+// place an image and center it
+function placeImage(target){
+  // reset scale otherwise it fucks up
+  target.scale.set(1);
+  // size the image so that it covers the canvas
+  target.scale.set(getScaleFactor(target.width, target.height));
+  // center image
+  target.anchor.x = 0.5;
+  target.anchor.y = 0.5;
+  target.position.x = windowWidth / 2;
+  target.position.y = windowHeight / 2;
+  // add background to stage
+  app.stage.addChild(target);
+}
+
+// find scale factor for image any image
+function getScaleFactor(imgwidth, imgheight){
+  scalex = windowWidth / imgwidth;
+  scaley = windowHeight / imgheight;
+  if (scalex > scaley) {
+    return scalex
+  } else {
+    return scaley
+  }
+}
+
+
+
+
+
+
+
+
+
+// ######################
+// # INTERFACE FUNCTION #
+// ######################
+
 function updateConsoleInterface(){
   console.clear();
   // explain controls
@@ -209,9 +421,10 @@ function updateConsoleInterface(){
             + "║ Mask expansion alone ————— < or > ║\n"
             + "║ Image transition time ———— ← or → ║\n"
             + "║ mask movement amount ————— [ or ] ║\n"
-            + "║ rotation on/off —————————— R      ║\n"
-            + "║ increase rotation ———————— T      ║\n"
-            + "║ decrease rotation ———————— E      ║\n"
+            + "║ decr. alpha gamma ———————— 1      ║\n"
+            + "║ incr. alpha gamma ———————— 2      ║\n"
+            + "║ decr. alpha emboss ——————— 3      ║\n"
+            + "║ incr. alpha emboss ——————— 4      ║\n"
             + "║                                   ║\n"
             + "╚═══════════════════════════════════╝"
           );
@@ -265,84 +478,4 @@ function updateConsoleInterface(){
     }
   }
   console.warn("\n" + output.bordertop + output.keyline + output.bordermiddle + output.valueline + output.borderbottom);
-}
-function findLongestString(array){
-  var longestWord = array.sort(function(a, b) {
-    return b.length - a.length;
-  });
-  return array[0];
-}
-// add an image to the scene
-function addImageToScene(){
-
-  // create alpha for this image
-  alpha.push(new PIXI.Sprite());
-  alpha[alpha.length - 1].alpha = 0;
-  addRandomImage(alpha[alpha.length - 1], sprites);
-  placeImage(alpha[alpha.length - 1]);
-
-  // define the image that will be masked
-  masked.push(new PIXI.Sprite());
-  // add random time value for this
-  masked[masked.length - 1].time = minTime + minTime * Math.random();
-  // add next value
-  masked[masked.length - 1].next = true;
-  // alpha value
-  masked[masked.length - 1].alpha = 0;
-  // roation
-  masked[masked.length - 1].rotationAmount = (Math.random() - .5) * rotationAmount;
-  masked[masked.length - 1].texture = alpha[masked.length - 1].texture;
-  placeImage(masked[masked.length - 1]);
-
-  // create mask for this image
-  mask.push(new PIXI.Sprite());
-  mask[mask.length - 1].texture = alpha[mask.length - 1].texture;
-  placeImage(mask[mask.length - 1]);
-  // define the mask image as the mask for the top image
-  masked[mask.length - 1].mask = mask[mask.length - 1];
-
-  // create targetpoints for this image (center of image)
-  // only if there are less targetPoints than images
-  if (targetPoints.length < masked.length) {
-    targetPoints.push(new PIXI.Point(windowWidth/2, windowHeight/2));
-  }
-
-  // create new counter
-  elapsed.push(0.0);
-}
-// add a random image
-function addRandomImage(target, src){
-  target.texture = getRandomProp(src).texture;
-}
-
-// get random property from object
-function getRandomProp(obj){
-  var keys = Object.keys(obj);
-  return obj[keys[ keys.length * Math.random() << 0]];
-}
-
-// place an image and center it
-function placeImage(target){
-  // reset scale otherwise it fucks up
-  target.scale.set(1);
-  // size the image so that it covers the canvas
-  target.scale.set(getScaleFactor(target.width, target.height));
-  // center image
-  target.anchor.x = 0.5;
-  target.anchor.y = 0.5;
-  target.position.x = windowWidth / 2;
-  target.position.y = windowHeight / 2;
-  // add background to stage
-  app.stage.addChild(target);
-}
-
-// find scale factor for image any image
-function getScaleFactor(imgwidth, imgheight){
-  scalex = windowWidth / imgwidth;
-  scaley = windowHeight / imgheight;
-  if (scalex > scaley) {
-    return scalex
-  } else {
-    return scaley
-  }
 }
