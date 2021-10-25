@@ -190,15 +190,26 @@ loader.load((loader, resources) => {
 
 // general filter
 const alphaAdjustment = new PIXI.filters.AdjustmentFilter();
-alphaAdjustment.gamma = 0;
-alphaAdjustment.contrast = 1;
-alphaAdjustment.brightness = 1;
+alphaAdjustment.gamma = .1;
+// alphaAdjustment.contrast = 1;
+// alphaAdjustment.saturation = 1;
+// alphaAdjustment.contrast = 4;
+// alphaAdjustment.brightness = .1;
+
+const alphaAdjustment2 = new PIXI.filters.AdjustmentFilter();
+alphaAdjustment2.brightness = 2;
+// alphaAdjustment2.contrast = .1;
+alphaAdjustment2.saturation = .7;
 
 const alphaDisplace = new PIXI.filters.EmbossFilter();
-alphaDisplace.strength = 0;
-// alphaDisplace.blendMode = 1;
-console.log(alphaDisplace);
-console.log(alphaDisplace.blendMode);
+alphaDisplace.strength = -4.5;
+
+const bloom = new PIXI.filters.BloomFilter();
+bloom.blur = 20;
+
+const blur = new PIXI.filters.BlurFilter();
+blur.blur = 1;
+
 
 
 
@@ -328,7 +339,8 @@ function addImageToScene(){
   placeImage(alpha[alpha.length - 1]);
 
   // apply filter to alpha
-  alpha[alpha.length - 1].filters = [alphaDisplace];
+  alpha[alpha.length - 1].filters = [alphaAdjustment2, bloom];
+  // alpha[alpha.length - 1].filters = [blurFilter2, alphaAdjustment2];
 
 
   // define the image that will be masked
@@ -345,7 +357,11 @@ function addImageToScene(){
   placeImage(masked[masked.length - 1]);
 
 
-  // masked[masked.length - 1].filters = [alphaDisplace];
+  // masked[masked.length - 1].filters = [blur, alphaAdjustment];
+  // masked[masked.length - 1].filters = [alphaAdjustment, blur];
+  masked[masked.length - 1].filters = [alphaAdjustment, blur];
+  // masked[masked.length - 1].filters = [blurFilter2];
+  // masked[masked.length - 1].filters = [alphaAdjustment, blurFilter];
 
   // create mask for this image
   mask.push(new PIXI.Sprite());
