@@ -16,6 +16,10 @@ let maskExpansion = 1;
 let rotation = false;
 let rotationAmount = .001;
 
+// filter vars
+alphagamma = 0;
+alphaemboss = 0;
+
 updateConsoleInterface();
 
 
@@ -96,32 +100,36 @@ document.onkeydown = function(e) {
   // filter controls
   // alpha: more gamma
   if (e.key == "2") {
-    alphaAdjustment.gamma += .1;
+    alphagamma += .1;
+    alphaAdjustment.gamma = alphagamma;
     // interface
     updateConsoleInterface();
-    console.log("gamma", alphaAdjustment.gamma);
+    console.log("gamma", alphagamma);
   }
   // alpha: less gamma
   if (e.key == "1") {
-    alphaAdjustment.gamma -= .1;
+    alphagamma -= .1;
+    alphaAdjustment.gamma = alphagamma;
     // interface
     updateConsoleInterface();
-    console.log("gamma", alphaAdjustment.gamma);
+    console.log("gamma", alphagamma);
   }
 
   // alpha: more emboss
   if (e.key == "4") {
-    alphaDisplace.strength += .1;
+    alphaemboss += .1;
+    alphaDisplace.strength = alphaemboss;
     // interface
     updateConsoleInterface();
-    console.log("alphaDisplace", alphaDisplace.strength);
+    // console.log("alphaDisplace", alphaemboss);
   }
   // alpha: less emboss
   if (e.key == "3") {
-    alphaDisplace.strength -= .1;
+    alphaemboss -= .1;
+    alphaDisplace.strength = alphaemboss;
     // interface
     updateConsoleInterface();
-    console.log("alphaDisplace", alphaDisplace.strength);
+    // console.log("alphaDisplace", alphaemboss);
   }
 };
 
@@ -196,9 +204,9 @@ alphaAdjustment.brightness = 1;
 
 const alphaDisplace = new PIXI.filters.EmbossFilter();
 alphaDisplace.strength = 0;
-// alphaDisplace.blendMode = 1;
-console.log(alphaDisplace);
-console.log(alphaDisplace.blendMode);
+
+const alphaBlur = new PIXI.filters.BlurFilter();
+alphaBlur.blur = 100;
 
 
 
@@ -327,8 +335,15 @@ function addImageToScene(){
   addRandomImage(alpha[alpha.length - 1], sprites);
   placeImage(alpha[alpha.length - 1]);
 
+
+
+
   // apply filter to alpha
-  alpha[alpha.length - 1].filters = [alphaDisplace];
+  // alpha[alpha.length - 1].filters = [alphaDisplace, alphaAdjustment];
+  alpha[alpha.length - 1].filters = [alphaAdjustment];
+  // alpha[alpha.length - 1].filters = [alphaBlur];
+
+
 
 
   // define the image that will be masked
@@ -345,7 +360,7 @@ function addImageToScene(){
   placeImage(masked[masked.length - 1]);
 
 
-  // masked[masked.length - 1].filters = [alphaDisplace];
+  masked[masked.length - 1].filters = [alphaDisplace];
 
   // create mask for this image
   mask.push(new PIXI.Sprite());
@@ -448,6 +463,12 @@ function updateConsoleInterface(){
     },{
       key: "rot. amnt.",
       value: Math.round(rotationAmount * 10000) / 10000,
+    },{
+      key: "a.gamma",
+      value: Math.round(alphagamma * 10000) / 10000,
+    },{
+      key: "a.embss",
+      value: Math.round(alphaemboss * 10000) / 10000,
     }
   ];
   // define output object
