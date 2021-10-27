@@ -17,10 +17,15 @@ let rotation = false;
 let rotationAmount = .001;
 
 // filter vars
-alphagamma = 0;
-alphaemboss = 0;
+var alphaemboss = false;
+var maskemboss = false;
+var alphablur = false;
+var maskeblur = false;
+var bluramount = 1;
+var bloomamount = 20;
+var embossamount = 4.5;
 
-updateConsoleInterface();
+console.log("currently loading images and interface...");
 
 
 
@@ -98,39 +103,137 @@ document.onkeydown = function(e) {
 
 
   // filter controls
-  // alpha: more gamma
-  if (e.key == "2") {
-    alphagamma += .1;
-    alphaAdjustment.gamma = alphagamma;
-    // interface
-    updateConsoleInterface();
-    console.log("gamma", alphagamma);
-  }
-  // alpha: less gamma
+  // embossAlpha on/off
   if (e.key == "1") {
-    alphagamma -= .1;
-    alphaAdjustment.gamma = alphagamma;
+    embossAlpha.enabled = !embossAlpha.enabled
     // interface
     updateConsoleInterface();
-    console.log("gamma", alphagamma);
+  }
+  // embossMasked on/off
+  if (e.key == "2") {
+    embossMasked.enabled = !embossMasked.enabled
+    // interface
+    updateConsoleInterface();
+  }
+  // blurAlpha on/off
+  if (e.key == "3") {
+    blurAlpha.enabled = !blurAlpha.enabled
+    // interface
+    updateConsoleInterface();
+  }
+  // blurMasked on/off
+  if (e.key == "4") {
+    blurMasked.enabled = !blurMasked.enabled
+    // interface
+    updateConsoleInterface();
+  }
+  // blurAlpha on/off
+  if (e.key == "5") {
+    bloomAlpha.enabled = !bloomAlpha.enabled
+    // interface
+    updateConsoleInterface();
+  }
+  // blurMasked on/off
+  if (e.key == "6") {
+    bloomMasked.enabled = !bloomMasked.enabled
+    // interface
+    updateConsoleInterface();
   }
 
-  // alpha: more emboss
-  if (e.key == "4") {
-    alphaemboss += .1;
-    alphaDisplace.strength = alphaemboss;
+
+  // adjustment Controls alpha
+  // gamma up down
+  if (e.key == "q") {
+    adjustmentAlpha.gamma -= .1;
     // interface
     updateConsoleInterface();
-    // console.log("alphaDisplace", alphaemboss);
   }
-  // alpha: less emboss
-  if (e.key == "3") {
-    alphaemboss -= .1;
-    alphaDisplace.strength = alphaemboss;
+  if (e.key == "w") {
+    adjustmentAlpha.gamma += .1;
     // interface
     updateConsoleInterface();
-    // console.log("alphaDisplace", alphaemboss);
   }
+  // saturation up down
+  if (e.key == "e") {
+    adjustmentAlpha.saturation -= .1;
+    // interface
+    updateConsoleInterface();
+  }
+  if (e.key == "r") {
+    adjustmentAlpha.saturation += .1;
+    // interface
+    updateConsoleInterface();
+  }
+  // contrast up down
+  if (e.key == "t") {
+    adjustmentAlpha.contrast -= .1;
+    // interface
+    updateConsoleInterface();
+  }
+  if (e.key == "y") {
+    adjustmentAlpha.contrast += .1;
+    // interface
+    updateConsoleInterface();
+  }
+  // brightness up down
+  if (e.key == "u") {
+    adjustmentAlpha.brightness -= .1;
+    // interface
+    updateConsoleInterface();
+  }
+  if (e.key == "i") {
+    adjustmentAlpha.brightness += .1;
+    // interface
+    updateConsoleInterface();
+  }
+
+
+  // adjustment Controls masked
+  // gamma up down
+  if (e.key == "a") {
+    adjustmentMasked.gamma -= .1;
+    // interface
+    updateConsoleInterface();
+  }
+  if (e.key == "s") {
+    adjustmentMasked.gamma += .1;
+    // interface
+    updateConsoleInterface();
+  }
+  // saturation up down
+  if (e.key == "d") {
+    adjustmentMasked.saturation -= .1;
+    // interface
+    updateConsoleInterface();
+  }
+  if (e.key == "f") {
+    adjustmentMasked.saturation += .1;
+    // interface
+    updateConsoleInterface();
+  }
+  // contrast up down
+  if (e.key == "g") {
+    adjustmentMasked.contrast -= .1;
+    // interface
+    updateConsoleInterface();
+  }
+  if (e.key == "h") {
+    adjustmentMasked.contrast += .1;
+    // interface
+    updateConsoleInterface();
+  }
+  // brightness up down
+  if (e.key == "j") {
+    adjustmentMasked.brightness -= .1;
+    // interface
+    updateConsoleInterface();
+  }
+  if (e.key == "k") {
+    adjustmentMasked.brightness += .1;
+    // interface
+    updateConsoleInterface();
+  }
+
 };
 
 
@@ -174,9 +277,9 @@ for (var i = 0; i < allImg.length; i++) {
 // The `load` method loads the queue of resources, and calls the passed in callback called once all
 // resources have loaded.
 loader.load((loader, resources) => {
-    for (var i = 0; i < allImg.length; i++) {
-      sprites["img" + i] = new PIXI.Sprite(resources["img" + i].texture);
-    }
+  for (var i = 0; i < allImg.length; i++) {
+    sprites["img" + i] = new PIXI.Sprite(resources["img" + i].texture);
+  }
 });
 
 
@@ -196,32 +299,42 @@ loader.load((loader, resources) => {
 // # FILTER SETUP #
 // ################
 
-// general filter
-const alphaAdjustment = new PIXI.filters.AdjustmentFilter();
-alphaAdjustment.gamma = .1;
-// alphaAdjustment.contrast = 1;
-// alphaAdjustment.saturation = 1;
-// alphaAdjustment.contrast = 4;
-// alphaAdjustment.brightness = .1;
 
-const alphaAdjustment2 = new PIXI.filters.AdjustmentFilter();
-alphaAdjustment2.brightness = 2;
-// alphaAdjustment2.contrast = .1;
-alphaAdjustment2.saturation = .7;
+const adjustmentAlpha = new PIXI.filters.AdjustmentFilter();
+adjustmentAlpha.gamma = 1;
+adjustmentAlpha.saturation = 1;
+adjustmentAlpha.contrast = 1;
+adjustmentAlpha.brightness = 1;
 
-const alphaDisplace = new PIXI.filters.EmbossFilter();
-alphaDisplace.strength = -4.5;
+const adjustmentMasked = new PIXI.filters.AdjustmentFilter();
+adjustmentMasked.gamma = 1;
+adjustmentMasked.saturation = 1;
+adjustmentMasked.contrast = 1;
+adjustmentMasked.brightness = 1;
 
-const bloom = new PIXI.filters.BloomFilter();
-bloom.blur = 20;
+const embossAlpha = new PIXI.filters.EmbossFilter();
+embossAlpha.enabled = false;
+embossAlpha.strength = embossamount;
 
-const blur = new PIXI.filters.BlurFilter();
-blur.blur = 1;
+const embossMasked = new PIXI.filters.EmbossFilter();
+embossMasked.enabled = false;
+embossMasked.strength = embossamount * -1;
 
+const bloomAlpha = new PIXI.filters.BloomFilter();
+bloomAlpha.enabled = false;
+bloomAlpha.blur = bloomamount;
 
+const bloomMasked = new PIXI.filters.BloomFilter();
+bloomMasked.enabled = false;
+bloomMasked.blur = bloomamount;
 
+const blurAlpha = new PIXI.filters.BlurFilter();
+blurAlpha.enabled = false;
+blurAlpha.blur = bluramount;
 
-
+const blurMasked = new PIXI.filters.BlurFilter();
+blurMasked.enabled = false;
+blurMasked.blur = bluramount;
 
 
 
@@ -237,6 +350,9 @@ blur.blur = 1;
 
 // when all images are loaded we can start
 loader.onComplete.add(() => {
+  // build interface
+  updateConsoleInterface();
+
   // dynamically create some images, and their counterparts
   masked = [];
   mask = [];
@@ -294,20 +410,6 @@ loader.onComplete.add(() => {
           app.stage.removeChild(alpha[i - 3]);
         }
       }
-
-
-      // // for testing just one image at a time!
-      // if (elapsed[i] > maxTime / 1 && masked[i].next == true) {
-      //   masked[i].next = false;
-      //   addImageToScene();
-      //   if (masked[i - 1]) {
-      //     app.stage.removeChild(masked[i - 1]);
-      //     app.stage.removeChild(mask[i - 1]);
-      //     app.stage.removeChild(alpha[i - 1]);
-      //   }
-      // }
-
-
     }
   });
 }); // called once when the queued resources all load.
@@ -350,9 +452,7 @@ function addImageToScene(){
 
 
   // apply filter to alpha
-  alpha[alpha.length - 1].filters = [alphaAdjustment2, bloom];
-  // alpha[alpha.length - 1].filters = [blurFilter2, alphaAdjustment2];
-
+  alpha[alpha.length - 1].filters = [embossAlpha, adjustmentAlpha, blurAlpha];
 
   // define the image that will be masked
   masked.push(new PIXI.Sprite());
@@ -367,12 +467,8 @@ function addImageToScene(){
   masked[masked.length - 1].texture = alpha[masked.length - 1].texture;
   placeImage(masked[masked.length - 1]);
 
-
-  // masked[masked.length - 1].filters = [blur, alphaAdjustment];
-  // masked[masked.length - 1].filters = [alphaAdjustment, blur];
-  masked[masked.length - 1].filters = [alphaAdjustment, blur];
-  // masked[masked.length - 1].filters = [blurFilter2];
-  // masked[masked.length - 1].filters = [alphaAdjustment, blurFilter];
+  // apply masked filters
+  masked[masked.length - 1].filters = [embossMasked, adjustmentMasked, blurMasked, bloomMasked];
 
   // create mask for this image
   mask.push(new PIXI.Sprite());
@@ -448,10 +544,23 @@ function updateConsoleInterface(){
             + "║ Mask expansion alone ————— < or > ║\n"
             + "║ Image transition time ———— ← or → ║\n"
             + "║ mask movement amount ————— [ or ] ║\n"
-            + "║ decr. alpha gamma ———————— 1      ║\n"
-            + "║ incr. alpha gamma ———————— 2      ║\n"
-            + "║ decr. alpha emboss ——————— 3      ║\n"
-            + "║ incr. alpha emboss ——————— 4      ║\n"
+            + "║ ————————————————————————————————— ║\n"
+            + "║ alpha emboss toggle ——————————— 1 ║\n"
+            + "║ mask emboss toggle ———————————— 2 ║\n"
+            + "║ alpha blur toggle ————————————— 3 ║\n"
+            + "║ mask blur toggle —————————————— 4 ║\n"
+            + "║ alpha bloom toggle ———————————— 5 ║\n"
+            + "║ mask bloom toggle ————————————— 6 ║\n"
+            + "║ ————————————————————————————————— ║\n"
+            + "║ alpha gamma —————————————— q or e ║\n"
+            + "║ alpha saturation ————————— e or r ║\n"
+            + "║ alpha contrast ——————————— t or y ║\n"
+            + "║ alpha brightness ————————— u or i ║\n"
+            + "║ ————————————————————————————————— ║\n"
+            + "║ masked gamma ————————————— a or s ║\n"
+            + "║ masked saturation ———————— d or f ║\n"
+            + "║ masked contrast —————————— g or h ║\n"
+            + "║ masked brightness ———————— j or k ║\n"
             + "║                                   ║\n"
             + "╚═══════════════════════════════════╝"
           );
@@ -467,20 +576,47 @@ function updateConsoleInterface(){
       key: "maks",
       value: Math.round(maskExpansion * 10000) / 10000,
     },{
-      key: "target",
-      value: Math.round(targetPointMargin * 10000) / 10000,
+      key: "a.emb",
+      value: + embossAlpha.enabled,
     },{
-      key: "rotation",
-      value: rotation,
+      key: "m.emb",
+      value: + embossMasked.enabled,
     },{
-      key: "rot. amnt.",
-      value: Math.round(rotationAmount * 10000) / 10000,
+      key: "a.blr",
+      value: + blurAlpha.enabled,
+    },{
+      key: "m.blr",
+      value: + blurMasked.enabled,
+    },{
+      key: "a.blm",
+      value: + bloomAlpha.enabled,
+    },{
+      key: "m.blm",
+      value: + bloomMasked.enabled,
     },{
       key: "a.gamma",
-      value: Math.round(alphagamma * 10000) / 10000,
+      value: Math.round(adjustmentAlpha.gamma * 10000) / 10000,
     },{
-      key: "a.embss",
-      value: Math.round(alphaemboss * 10000) / 10000,
+      key: "a.strtn",
+      value: Math.round(adjustmentAlpha.saturation * 10000) / 10000,
+    },{
+      key: "a.contr",
+      value: Math.round(adjustmentAlpha.contrast * 10000) / 10000,
+    },{
+      key: "a.brght",
+      value: Math.round(adjustmentAlpha.brightness * 10000) / 10000,
+    },{
+      key: "m.gamma",
+      value: Math.round(adjustmentMasked.gamma * 10000) / 10000,
+    },{
+      key: "m.strtn",
+      value: Math.round(adjustmentMasked.saturation * 10000) / 10000,
+    },{
+      key: "m.contr",
+      value: Math.round(adjustmentMasked.contrast * 10000) / 10000,
+    },{
+      key: "m.brght",
+      value: Math.round(adjustmentMasked.brightness * 10000) / 10000,
     }
   ];
   // define output object
