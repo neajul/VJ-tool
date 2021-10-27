@@ -96,7 +96,7 @@ document.onkeydown = function(e) {
     updateConsoleInterface();
   }
   // alpha opacity
-  if (e.key == "\'") {
+  if (e.key == "/") {
     maskedopacity -= 1;
     // interface
     updateConsoleInterface();
@@ -142,6 +142,18 @@ document.onkeydown = function(e) {
   // blurMasked on/off
   if (e.key == "6") {
     bloomMasked.enabled = !bloomMasked.enabled
+    // interface
+    updateConsoleInterface();
+  }
+  // adjustAlpha on/off
+  if (e.key == "7") {
+    adjustmentAlpha.enabled = !adjustmentAlpha.enabled
+    // interface
+    updateConsoleInterface();
+  }
+  // adjustAlpha on/off
+  if (e.key == "8") {
+    adjustmentMasked.enabled = !adjustmentMasked.enabled
     // interface
     updateConsoleInterface();
   }
@@ -458,7 +470,7 @@ function addImageToScene(){
 
 
   // apply filter to alpha
-  alpha[alpha.length - 1].filters = [embossAlpha, adjustmentAlpha, blurAlpha];
+  alpha[alpha.length - 1].filters = [embossAlpha, adjustmentAlpha, blurAlpha, bloomAlpha];
 
   // define the image that will be masked
   masked.push(new PIXI.Sprite());
@@ -551,7 +563,7 @@ function updateConsoleInterface(){
             + "║ Image transition time ———— ← or → ║\n"
             + "║ ————————————————————————————————— ║\n"
             + "║ alpha opacity ———————————— [ or ] ║\n"
-            + "║ masked opacity ——————————— ' or \\ ║\n"
+            + "║ masked opacity ——————————— / or \\ ║\n"
             + "║ ————————————————————————————————— ║\n"
             + "║ alpha emboss toggle ——————————— 1 ║\n"
             + "║ mask emboss toggle ———————————— 2 ║\n"
@@ -559,6 +571,8 @@ function updateConsoleInterface(){
             + "║ mask blur toggle —————————————— 4 ║\n"
             + "║ alpha bloom toggle ———————————— 5 ║\n"
             + "║ mask bloom toggle ————————————— 6 ║\n"
+            + "║ alpha adjust toggle ——————————— 5 ║\n"
+            + "║ mask adjust toggle ———————————— 6 ║\n"
             + "║ ————————————————————————————————— ║\n"
             + "║ alpha gamma —————————————— q or e ║\n"
             + "║ alpha saturation ————————— e or r ║\n"
@@ -607,6 +621,12 @@ function updateConsoleInterface(){
     },{
       key: "m.blm",
       value: + bloomMasked.enabled,
+    },{
+      key: "a.adj",
+      value: + adjustmentAlpha.enabled,
+    },{
+      key: "m.adj",
+      value: + adjustmentMasked.enabled,
     },{
       key: "a.gamma",
       value: Math.round(adjustmentAlpha.gamma * 10000) / 10000,
