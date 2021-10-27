@@ -24,6 +24,8 @@ var maskeblur = false;
 var bluramount = 1;
 var bloomamount = 20;
 var embossamount = 4.5;
+var alphaopacity = 0;
+var maskedopacity = 0;
 
 console.log("currently loading images and interface...");
 
@@ -82,21 +84,25 @@ document.onkeydown = function(e) {
     // interface
     updateConsoleInterface();
   }
-  // targetpoint margin up
-  if (e.key == "]") {
-    targetPointMargin *= 1 + .5;
-    if (targetPointMargin == 0) {
-      targetPointMargin = 1;
-    }
+  // alpha opacity
+  if (e.key == "[") {
+    alphaopacity -= 1;
     // interface
     updateConsoleInterface();
   }
-  // targetpoint margin down
-  if (e.key == "[") {
-    targetPointMargin *= 1 - .5;
-    if (targetPointMargin == 0) {
-      targetPointMargin = -1;
-    }
+  if (e.key == "]") {
+    alphaopacity += 1;
+    // interface
+    updateConsoleInterface();
+  }
+  // alpha opacity
+  if (e.key == "\'") {
+    maskedopacity -= 1;
+    // interface
+    updateConsoleInterface();
+  }
+  if (e.key == "\\") {
+    maskedopacity += 1;
     // interface
     updateConsoleInterface();
   }
@@ -379,14 +385,14 @@ loader.onComplete.add(() => {
       // count time
       elapsed[i] += delta;
       // turn up alpha of mask
-      masked[i].alpha = masked[i].alpha + 1 / (masked[i].time / 2);
+      masked[i].alpha = masked[i].alpha + maskedopacity / (maxTime / 2);
       // only start with main alpha a bit later
       if (elapsed[i] > masked[i].time / 2) {
-        alpha[i].alpha = alpha[i].alpha + 1 / ( masked[i].time - masked[i].time / 2 );
+        alpha[i].alpha = alpha[i].alpha + alphaopacity / ( maxTime - maxTime / 2 );
       }
       // move mask towards target point
-      mask[i].x += (targetPoints[i].x - mask[i].x) * 1 / masked[i].time;
-      mask[i].y += (targetPoints[i].y - mask[i].y) * 1 / masked[i].time;
+      mask[i].x += (targetPoints[i].x - mask[i].x) * 1 / maxTime;
+      mask[i].y += (targetPoints[i].y - mask[i].y) * 1 / maxTime;
 
       // scale image
       masked[i].scale.set( masked[i].scale._x * expansion );
@@ -543,7 +549,9 @@ function updateConsoleInterface(){
             + "║ Image expansion combined — ↑ or ↓ ║\n"
             + "║ Mask expansion alone ————— < or > ║\n"
             + "║ Image transition time ———— ← or → ║\n"
-            + "║ mask movement amount ————— [ or ] ║\n"
+            + "║ ————————————————————————————————— ║\n"
+            + "║ alpha opacity ———————————— [ or ] ║\n"
+            + "║ masked opacity ——————————— ' or \\ ║\n"
             + "║ ————————————————————————————————— ║\n"
             + "║ alpha emboss toggle ——————————— 1 ║\n"
             + "║ mask emboss toggle ———————————— 2 ║\n"
@@ -575,6 +583,12 @@ function updateConsoleInterface(){
     },{
       key: "maks",
       value: Math.round(maskExpansion * 10000) / 10000,
+    },{
+      key: "a.opac",
+      value: Math.round(alphaopacity * 10000) / 10000,
+    },{
+      key: "m.opac",
+      value: Math.round(maskedopacity * 10000) / 10000,
     },{
       key: "a.emb",
       value: + embossAlpha.enabled,
